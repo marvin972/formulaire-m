@@ -1,10 +1,20 @@
-
-<?php 
+<?php
 require('./includes/pdo.php');
 require('./includes/functions.php');
-// include('./includes/header.php'); 
+include('./includes/header.php'); 
 
-$success = false;
+?>
+<?php
+if(!empty($_GET['id']) && is_numeric($_GET['id'])) {
+    $id = $_GET['id'];
+    $sql_edit_user = "SELECT * FROM users WHERE id = :id";
+    $query = $pdo->prepare($sql_edit_user);
+    $query->bindValue(':id',$id, PDO::PARAM_INT);
+    $query->execute();
+    $user = $query->fetch();
+    // debug($user);
+    // die;
+
 $errors = [];
 if(!empty($_POST['submitted'])) {
 
@@ -17,31 +27,33 @@ if(!empty($_POST['submitted'])) {
     $errors = validEmail($errors, $email, 'email');
 
     if(count($errors) === 0) {
-        $requete_insert = "INSERT INTO users (nom,prenom,email,created_at) VALUES (:nom,:prenom,:email,NOW())";
-        $query = $pdo->prepare($requete_insert);
+        $requete_update = "UPDATE users SET nom= :nom, prenom= :prenom, email = :email  WHERE id= :id";
+        $query = $pdo->prepare($requete_update);
         $query->bindValue(':nom',$nom, PDO::PARAM_STR);
         $query->bindValue(':prenom',$prenom, PDO::PARAM_STR);
         $query->bindValue(':email',$email, PDO::PARAM_STR);
+        $query->bindValue(':id',$id, PDO::PARAM_INT);
         $query->execute();
         header('Location: list_users.php');
     }
 }
 ?>
-<?php include('./includes/header.php'); ?>
-
+<h1>Editer un utilisateur</h1>
 <form action="" method="post" novalidate>
+
     <div class="input-group">
         <label for="nom">
             <span>Nom :</span>
-            <input type="text" name="nom" value="<?php if(!empty($_POST['nom'])) { echo $_POST['nom']; } ?>">
+            <input type="text" name="nom" value="<?=$user['nom']?>">
             <span class="error"><?php if(!empty($errors['nom'])) { echo $errors['nom']; } ?></span>
+
+        </label>
     </div>
 
     <div class="input-group">
-        </label>
         <label for="prenom">
             <span>Prenom :</span>
-            <input type="text" name="prenom" value="<?php if(!empty($_POST['prenom'])) { echo $_POST['prenom']; } ?>">
+            <input type="text" name="prenom" value="<?=$user['prenom']?>">
             <span class="error"><?php if(!empty($errors['prenom'])) { echo $errors['prenom']; } ?></span>
         </label>
     </div>
@@ -49,13 +61,13 @@ if(!empty($_POST['submitted'])) {
     <div class="input-group">
         <label for="email">
             <span>Email :</span>
-            <input type="text" name="email" value="<?php if(!empty($_POST['email'])) { echo $_POST['email']; } ?>">
+            <input type="text" name="email" value="<?=$user['email']?>">
             <span class="error"><?php if(!empty($errors['email'])) { echo $errors['email']; } ?></span>
         </label>
     </div>
 
     <div class="input-group">
-        <input type="submit" name="submitted" value="Ajouter un nouvel utilisateur">
+        <input type="submit" name="submitted" value="Editer utilisateur">
     </div>
 </form>
-<?php include('./includes/footer.php'); ?>
+<?php } ?>
